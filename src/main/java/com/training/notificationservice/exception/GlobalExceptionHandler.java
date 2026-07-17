@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -41,6 +42,13 @@ public class GlobalExceptionHandler {
                 .toList();
         log.warn("Validation failed on {}: {}", request.getRequestURI(), details);
         return build(HttpStatus.BAD_REQUEST, "Request validation failed", request, details);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiErrorResponse> handleMalformedRequest(HttpMessageNotReadableException ex,
+                                                                    HttpServletRequest request) {
+        log.warn("Malformed request body on {}: {}", request.getRequestURI(), ex.getMessage());
+        return build(HttpStatus.BAD_REQUEST, "Request body is missing or malformed", request, null);
     }
 
     @ExceptionHandler(NotificationServiceException.class)
